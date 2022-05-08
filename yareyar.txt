@@ -1,0 +1,702 @@
+#art
+
+#toy problem: tower of hanoi
+
+
+# Recursive Python function to solve the tower of hanoi
+
+def TowerOfHanoi(n , source, destination, auxiliary):
+    if n==1:
+        print ("Move disk 1 from source",source,"to destination",destination)
+        return
+    TowerOfHanoi(n-1, source, auxiliary, destination)
+    print ("Move disk",n,"from source",source,"to destination",destination)
+    TowerOfHanoi(n-1, auxiliary, destination, source)
+
+# Driver code
+n = 4
+TowerOfHanoi(n,'A','B','C')
+# A, C, B are the name of rods
+
+#camelbanana
+
+total=int(input('Enter no. of bananas at starting:')) 
+distance=int(input('Enter distance to cover:')) 
+load_camel=int(input('Enter max load capacity of camel:')) 
+lose=0 
+start=total 
+for i in range(distance): 
+    while start>0: 
+        start=start-load_camel 
+    if start==1: 
+          lose=lose-1 
+    lose=lose+2 
+    lose=lose-1 
+    start=total-lose 
+    if start==0: 
+        break 
+print(start) 
+
+#agentbased
+
+#vacuum cleaner
+import time
+n = int(input("Enter number of rooms:")) 
+rooms = []
+clean = []
+for i in range(1,n+1): 
+    rooms.append(i)
+for i in rooms:
+     dirty = int(input(f"Is room {i} clean:")) 
+clean.append(dirty)
+start = int(input("Enter room no. to start:")) 
+print(" ")
+for i in range(start,len(rooms)+1): 
+    if clean[i-1] == 1:
+        print(f"Entering room {i}")
+        print("Room is already clean, moving to next room") 
+        print("")
+    elif clean[i-1] == 0: 
+        print(f"Entering room {i}") 
+        print("Room is dirty") 
+        print("Cleaning room",end="") 
+        time.sleep(0.5) 
+        print(".",end="") 
+        time.sleep(0.5) 
+        print(".",end="") 
+        time.sleep(0.5)
+        print(".") 
+        clean[i-1]=1 
+        print("Room cleaned, moving to next room") 
+        print("")
+if start!=1:
+    for i in range(1,start): 
+        if clean[i-1] == 1:
+            print(f"Entering room {i}") 
+            print("Room is already clean, moving to next room") 
+            print("")
+        elif clean[i-1] == 0: 
+            print(f"Entering room {i}") 
+            print("Cleaning room",end="") 
+            time.sleep(0.5) 
+            print(".",end="") 
+            time.sleep(0.5) 
+            print(".",end="") 
+            time.sleep(0.5)
+            print(".") 
+            time.sleep(0.5) 
+            clean[i-1]=1
+            print("Room cleaned, moving to next room") 
+            print("")
+if len(clean) == sum(clean):
+    print("All rooms cleaned successfully!!")
+
+'''working op
+Enter number of rooms:5
+Is room 1 clean:1
+Is room 2 clean:0
+Is room 3 clean:1
+Is room 4 clean:1
+Is room 5 clean:0
+Enter room no. to start:1
+ 
+Entering room 1
+Room is dirty
+Cleaning room...
+Room cleaned, moving to next room'''
+
+#CSP
+
+#cryptarithmetic
+import itertools 
+import re 
+
+def solve(formula): 
+      return filter(valid, letter_replacements(formula)) 
+
+def letter_replacements(formula): 
+        formula = formula.replace(' = ', ' == ') 
+        letters = cat(set(re.findall('[A-Z]', formula))) 
+        for digits in itertools.permutations('1234567890', len(letters)): 
+              yield formula.translate(str.maketrans(letters, cat(digits))) 
+
+def valid(exp): 
+        try: 
+              return not leading_zero(exp) and eval(exp) is True 
+        except ArithmeticError: 
+              return False 
+
+cat = ''.join 
+leading_zero = re.compile(r'\b0[0-9]').search 
+next(solve('FOUR + THREE = SEVEN'))
+
+'''working op
+'2503 + 69311 == 71814'
+'''
+
+#fill in blacks
+"""Cryptarithmetic puzzle.
+
+First attempt to solve equation CP + IS + FUN = TRUE
+where each letter represents a unique digit.
+
+This problem has 72 different solutions in base 10.
+"""
+from ortools.sat.python import cp_model
+
+
+class VarArraySolutionPrinter(cp_model.CpSolverSolutionCallback):
+    """Print intermediate solutions."""
+
+    def __init__(self, variables):
+        cp_model.CpSolverSolutionCallback.__init__(self)
+        self.__variables = variables
+        self.__solution_count = 0
+
+    def on_solution_callback(self):
+        self.__solution_count += 1
+        for v in self.__variables:
+            print('%s=%i' % (v, self.Value(v)), end=' ')
+        print()
+
+    def solution_count(self):
+        return self.__solution_count
+
+
+def main():
+    """Solve the CP+IS+FUN==TRUE cryptarithm."""
+    # Constraint programming engine
+    model = cp_model.CpModel()
+
+    base = 10
+
+    c = model.NewIntVar(1, base - 1, 'C')
+    p = model.NewIntVar(0, base - 1, 'P')
+    i = model.NewIntVar(1, base - 1, 'I')
+    s = model.NewIntVar(0, base - 1, 'S')
+    f = model.NewIntVar(1, base - 1, 'F')
+    u = model.NewIntVar(0, base - 1, 'U')
+    n = model.NewIntVar(0, base - 1, 'N')
+    t = model.NewIntVar(1, base - 1, 'T')
+    r = model.NewIntVar(0, base - 1, 'R')
+    e = model.NewIntVar(0, base - 1, 'E')
+
+    # We need to group variables in a list to use the constraint AllDifferent.
+    letters = [c, p, i, s, f, u, n, t, r, e]
+
+    # Verify that we have enough digits.
+    assert base >= len(letters)
+
+    # Define constraints.
+    model.AddAllDifferent(letters)
+
+    # CP + IS + FUN = TRUE
+    model.Add(c * base + p + i * base + s + f * base * base + u * base +
+              n == t * base * base * base + r * base * base + u * base + e)
+
+    # Creates a solver and solves the model.
+    solver = cp_model.CpSolver()
+    solution_printer = VarArraySolutionPrinter(letters)
+    # Enumerate all solutions.
+    solver.parameters.enumerate_all_solutions = True
+    # Solve.
+    status = solver.Solve(model, solution_printer)
+
+    # Statistics.
+    print('\nStatistics')
+    print(f'  status   : {solver.StatusName(status)}')
+    print(f'  conflicts: {solver.NumConflicts()}')
+    print(f'  branches : {solver.NumBranches()}')
+    print(f'  wall time: {solver.WallTime()} s')
+    print(f'  sol found: {solution_printer.solution_count()}')
+
+
+if __name__ == '__main__':
+    main()
+#graph coloring
+# Number of vertices in the graph
+# define 4 4
+
+# check if the colored
+# graph is safe or not
+def isSafe(graph, color):
+
+	# check for every edge
+	for i in range(4):
+		for j in range(i + 1, 4):
+			if (graph[i][j] and color[j] == color[i]):
+				return False
+	return True
+
+# /* This function solves the m Coloring
+# problem using recursion. It returns
+# false if the m colours cannot be assigned,
+# otherwise, return true and prints
+# assignments of colours to all vertices.
+# Please note that there may be more than
+# one solutions, this function prints one
+# of the feasible solutions.*/
+def graphColoring(graph, m, i, color):
+
+	# if current index reached end
+	if (i == 4):
+
+		# if coloring is safe
+		if (isSafe(graph, color)):
+
+			# Print the solution
+			printSolution(color)
+			return True
+		return False
+
+	# Assign each color from 1 to m
+	for j in range(1, m + 1):
+		color[i] = j
+
+		# Recur of the rest vertices
+		if (graphColoring(graph, m, i + 1, color)):
+			return True
+		color[i] = 0
+	return False
+
+# /* A utility function to print solution */
+def printSolution(color):
+	print("Solution Exists:" " Following are the assigned colors ")
+	for i in range(4):
+		print(color[i],end=" ")
+
+# Driver code
+if __name__ == '__main__':
+
+	# /* Create following graph and
+	# test whether it is 3 colorable
+	# (3)---(2)
+	# | / |
+	# | / |
+	# | / |
+	# (0)---(1)
+	# */
+	graph = [
+		[ 0, 1, 1, 1 ],
+		[ 1, 0, 1, 0 ],
+		[ 1, 1, 0, 1 ],
+		[ 1, 0, 1, 0 ],
+	]
+	m = 3 # Number of colors
+
+	# Initialize all color values as 0.
+	# This initialization is needed
+	# correct functioning of isSafe()
+	color = [0 for i in range(4)]
+
+	if (not graphColoring(graph, m, 0, color)):
+		print ("Solution does not exist")
+  
+  #BFS DFS
+  def bfs(visited, graph, node):
+    visited.append(node)
+    queue.append(node)
+    
+    while queue:
+        
+        u = queue.pop(0);
+        print(u)
+        for neighbour in graph[u]:
+            if neighbour not in visited:
+                visited.append(neighbour)
+                queue.append(neighbour)
+    
+def dfs(visited, graph, node):
+    if node not in visited:
+        print(node)
+        visited.add(node)
+        for neighbour in graph[node]:
+            dfs(visited, graph, neighbour)
+
+
+
+
+
+visited = []
+visit = set();
+queue = []
+graph = {
+  '5' : ['3','7'],
+  '3' : ['2', '4'],
+  '7' : ['8'],
+  '2' : [],
+  '4' : ['8'],
+  '8' : ['5']
+}
+
+print('BFS: ')
+bfs(visited, graph, '5')
+print('DFS: ')
+dfs(visit, graph, '5')
+
+
+#A-star and Best first
+
+from queue import PriorityQueue
+import matplotlib.pyplot as plt
+import networkx as nx
+
+# for implementing BFS | returns path having lowest cost
+def best_first_search(source, target, n):
+    visited = [0] * n
+    visited[source] = True
+    pq = PriorityQueue()
+    pq.put((0, source))
+    while pq.empty() == False:
+        u = pq.get()[1]
+        print(u, end=" ") # the path having lowest cost
+        if u == target:
+            break
+
+        for v, c in graph[u]:
+            if visited[v] == False:
+                visited[v] = True
+                pq.put((c, v))
+    print()
+
+# for adding edges to graph
+def addedge(x, y, cost):
+    graph[x].append((y, cost))
+    graph[y].append((x, cost))
+
+G = nx.Graph()
+v = int(input("Enter the number of nodes: "))
+graph = [[] for i in range(v)] # undirected Graph
+e = int(input("Enter the number of edges: "))
+print("Enter the edges along with their weights:")
+for i in range(e):
+    x, y, z = list(map(int, input().split()))
+    addedge(x, y, z)
+    G.add_edge(x, y, weight = z)
+
+source = int(input("Enter the Source Node: "))
+target = int(input("Enter the Target/Destination Node: "))
+print("\nPath: ", end = "")
+best_first_search(source, target, v)
+
+
+
+
+
+from collections import deque
+ 
+class Graph:
+    def __init__(self, adjac_lis):
+        self.adjac_lis = adjac_lis
+ 
+    def get_neighbors(self, v):
+        return self.adjac_lis[v]
+ 
+    def h(self, n):
+        H = {
+            'A': 1,
+            'B': 1,
+            'C': 1,
+            'D': 1
+        }
+ 
+        return H[n]
+ 
+    def a_star_algorithm(self, start, stop):
+
+        open_lst = set([start])
+        closed_lst = set([])
+
+        poo = {}
+        poo[start] = 0
+ 
+        par = {}
+        par[start] = start
+ 
+        while len(open_lst) > 0:
+            n = None
+ 
+            for v in open_lst:
+                if n == None or poo[v] + self.h(v) < poo[n] + self.h(n):
+                    n = v;
+ 
+            if n == None:
+                print('Path does not exist!')
+                return None
+ 
+
+            if n == stop:
+                reconst_path = []
+ 
+                while par[n] != n:
+                    reconst_path.append(n)
+                    n = par[n]
+ 
+                reconst_path.append(start)
+ 
+                reconst_path.reverse()
+ 
+                print('Path found: {}'.format(reconst_path))
+                return reconst_path
+ 
+            for (m, weight) in self.get_neighbors(n):
+ 
+                if m not in open_lst and m not in closed_lst:
+                    open_lst.add(m)
+                    par[m] = n
+                    poo[m] = poo[n] + weight
+ 
+        
+                else:
+                    if poo[m] > poo[n] + weight:
+                        poo[m] = poo[n] + weight
+                        par[m] = n
+ 
+                        if m in closed_lst:
+                            closed_lst.remove(m)
+                            open_lst.add(m)
+ 
+            open_lst.remove(n)
+            closed_lst.add(n)
+ 
+        print('Path does not exist!')
+        return None
+    
+    
+adjac_lis = {
+    'A': [('B', 1), ('C', 3), ('D', 7)],
+    'B': [('D', 5)],
+    'C': [('D', 12)]
+}
+graph1 = Graph(adjac_lis)
+graph1.a_star_algorithm('A', 'D')
+
+#minimax
+
+import math
+def minimax (curdepth, nodeIndex, maxTurn, scores,targetDepth):
+ 
+    if (curdepth == targetDepth):
+        return scores[nodeIndex]
+     
+    if (maxTurn):
+        return max(minimax(curdepth + 1, nodeIndex * 2, False, scores, targetDepth),minimax(curdepth + 1, nodeIndex * 2 + 1, False, scores, targetDepth))
+     
+    else:
+        return min(minimax(curdepth + 1, nodeIndex * 2,True, scores, targetDepth),minimax(curdepth + 1, nodeIndex * 2 + 1,True, scores, targetDepth))
+     
+    
+    
+scores = [3, 5, 13, 9, 6, 5, 4, 15]
+ 
+treeDepth = math.log(len(scores), 2)
+ 
+print("The optimal value is : ", end = "")
+print(minimax(0, 0, True, scores, treeDepth))
+
+
+#unification
+
+def get_index_comma(string):
+    index_list = list()
+    par_count = 0
+
+    for i in range(len(string)):
+        if string[i] == ',' and par_count == 0:
+            index_list.append(i)
+        elif string[i] == '(':
+            par_count += 1
+        elif string[i] == ')':
+            par_count -= 1
+
+    return index_list
+
+
+def is_variable(expr):
+    for i in expr:
+        if i == '(' or i == ')':
+            return False
+
+    return True
+
+
+def process_expression(expr):
+    expr = expr.replace(' ', '')
+    index = None
+    for i in range(len(expr)):
+        if expr[i] == '(':
+            index = i
+            break
+    predicate_symbol = expr[:index]
+    expr = expr.replace(predicate_symbol, '')
+    expr = expr[1:len(expr) - 1]
+    arg_list = list()
+    indices = get_index_comma(expr)
+
+    if len(indices) == 0:
+        arg_list.append(expr)
+    else:
+        arg_list.append(expr[:indices[0]])
+        for i, j in zip(indices, indices[1:]):
+            arg_list.append(expr[i + 1:j])
+        arg_list.append(expr[indices[len(indices) - 1] + 1:])
+
+    return predicate_symbol, arg_list
+
+
+def get_arg_list(expr):
+    _, arg_list = process_expression(expr)
+
+    flag = True
+    while flag:
+        flag = False
+
+        for i in arg_list:
+            if not is_variable(i):
+                flag = True
+                _, tmp = process_expression(i)
+                for j in tmp:
+                    if j not in arg_list:
+                        arg_list.append(j)
+                arg_list.remove(i)
+
+    return arg_list
+
+
+def check_occurs(var, expr):
+    arg_list = get_arg_list(expr)
+    if var in arg_list:
+        return True
+
+    return False
+
+
+def unify(expr1, expr2):
+
+    if is_variable(expr1) and is_variable(expr2):
+        if expr1 == expr2:
+            return 'Null'
+        else:
+            return False
+    elif is_variable(expr1) and not is_variable(expr2):
+        if check_occurs(expr1, expr2):
+            return False
+        else:
+            tmp = str(expr2) + '/' + str(expr1)
+            return tmp
+    elif not is_variable(expr1) and is_variable(expr2):
+        if check_occurs(expr2, expr1):
+            return False
+        else:
+            tmp = str(expr1) + '/' + str(expr2)
+            return tmp
+    else:
+        predicate_symbol_1, arg_list_1 = process_expression(expr1)
+        predicate_symbol_2, arg_list_2 = process_expression(expr2)
+
+        # Step 2
+        if predicate_symbol_1 != predicate_symbol_2:
+            return False
+        # Step 3
+        elif len(arg_list_1) != len(arg_list_2):
+            return False
+        else:
+            # Step 4: Create substitution list
+            sub_list = list()
+
+            # Step 5:
+            for i in range(len(arg_list_1)):
+                tmp = unify(arg_list_1[i], arg_list_2[i])
+
+                if not tmp:
+                    return False
+                elif tmp == 'Null':
+                    pass
+                else:
+                    if type(tmp) == list:
+                        for j in tmp:
+                            sub_list.append(j)
+                    else:
+                        sub_list.append(tmp)
+
+            # Step 6
+            return sub_list
+
+
+if __name__ == '__main__':
+    
+    f1 = 'Q(a, g(x, a), f(y))'
+    f2 = 'Q(a, g(f(b), a), x)'
+    # f1 = input('f1 : ')
+    # f2 = input('f2 : ')
+
+    result = unify(f1, f2)
+    if not result:
+        print('The process of Unification failed!')
+    else:
+        print('The process of Unification successful!')
+        print(result)
+
+        #linear regression
+
+        #import libraries
+        import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+%matplotlib inline
+#datafile
+from google.colab import drive
+drive.mount('/content/drive')
+#readfile
+companies=pd.read_csv('sample_data/LinearRegressionExample.csv')
+x=companies.iloc[:,:-1].values
+y=companies.iloc[:,4].values
+companies.head()
+#values to print
+print(x)
+print(y)
+
+sns.heatmap(companies.corr())
+
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+#Encode State Column
+labelencoder = LabelEncoder()
+x[:,3] = labelencoder.fit_transform(x[:,3])
+ct = ColumnTransformer([("State", OneHotEncoder(), [3])], remainder = 'passthrough')
+x = ct.fit_transform(x)
+print(x)
+
+
+x=x[:,1:]
+print(x)
+
+#split data
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test=train_test_split(x,y,test_size=0.2,random_state=0)
+
+#fitting model
+from sklearn.linear_model import LinearRegression
+model_fit=LinearRegression()
+model_fit.fit(x_train,y_train)
+
+
+#predict
+y_pred=model_fit.predict(x_test)
+print(y_pred)
+
+'''https://colab.research.google.com/drive/1B2QP_GRVQ3FH2C6LcoudtWlZAkCNDOKv?authuser=1#scrollTo=ub3IPrqT9t0j'''
+'''https://colab.research.google.com/drive/1rEMSmkW9szAq68uTi_LrHvARlPqVLM9t?usp=sharing'''
+
+
+
+
+#svm and nlp
+
+"""https://colab.research.google.com/drive/1p85_s-ObI2od6NlFGvXTeBp8rBfjpcS4?usp=sharing"""
+"""https://colab.research.google.com/drive/1RRY-koyjH9SCphbt96apVQos0rA2dJb2?usp=sharing"""
+
+
+
+
